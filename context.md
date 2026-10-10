@@ -3,7 +3,7 @@
 Running record of the project's state, decisions, and findings. Updated at the end of every step.
 Read this first when resuming work.
 
-_Last updated: 2026-10-10 (Step 5 completed)_
+_Last updated: 2026-10-10 (Step 6 completed)_
 
 ## Project
 
@@ -27,9 +27,9 @@ _Last updated: 2026-10-10 (Step 5 completed)_
 | 2 | Dataset loading and initial exploration | ✅ Done (commit `ba1ac74`) |
 | 3 | Text cleaning and target analysis | ✅ Done (commit `abbad01`) |
 | 4 | Data splitting and NLP tokenization | ✅ Done (commit `d1ced45`) |
-| 5 | LSTM model development | ✅ Done (awaiting commit) |
-| 6 | Model training and validation | ⏳ Next |
-| 7 | Model evaluation and visualization | Pending |
+| 5 | LSTM model development | ✅ Done (commit `de8d58b`) |
+| 6 | Model training and validation | ✅ Done (awaiting commit) |
+| 7 | Model evaluation and visualization | ⏳ Next |
 | 8 | Prediction on new comments (`src/predict.py`) | Pending |
 | 9 | Documentation and final verification | Pending |
 
@@ -47,7 +47,7 @@ _Last updated: 2026-10-10 (Step 5 completed)_
 
 | Path | Purpose |
 |---|---|
-| `notebooks/toxic_comment_classification.ipynb` | Main notebook (Tasks 1–3 done, Task 4 model-building part done). Notebook Task 3 = roadmap Step 4; Task 4 = Steps 5+6 |
+| `notebooks/toxic_comment_classification.ipynb` | Main notebook (Tasks 1–4 done). Notebook Task 3 = roadmap Step 4; Task 4 = Steps 5+6 |
 | `src/preprocessing.py` | `clean_text()`, shared by the notebook and the future `src/predict.py` |
 | `tests/test_preprocessing.py` | unittest tests for `clean_text()` |
 | `data/toxic_comments_dataset.csv` | Dataset (ignored by Git) |
@@ -82,7 +82,15 @@ _Last updated: 2026-10-10 (Step 5 completed)_
 - Sequences: training lengths run from 30 to 46 tokens (median 37). `MAX_LEN = 50` (the max rounded up to a multiple of 10), so 100% fit without truncation. Padding `pre`, truncating `post`.
 - Model (Step 5): Keras 3 (`tensorflow.keras`) `Sequential` named `toxic_comment_lstm`: Input(50) → Embedding(212, 64) → LSTM(64) → Dropout(0.3) → Dense(32, relu) → Dropout(0.3) → Dense(5, softmax). **48,837 params**, which match the formulas. Compiled with Adam(lr=0.001), `sparse_categorical_crossentropy` and `accuracy`. No `mask_zero`, since pre-padding keeps the real words last. Seeded with `keras.utils.set_random_seed(42)`.
 - Training runs on the CPU (TensorFlow has no GPU support on native Windows).
-- Tokenizer, label encoder and settings (MAX_LEN, padding, truncating) are **not saved yet**. Save them in Step 6 with the model, for `predict.py`.
+- Validation (Step 6): a separate **stratified** 10% split of the training set via `train_test_split` (21,600 train / 2,400 val), not Keras `validation_split`. Row positions (`idx_tr`, `idx_val`) are tracked back to the original text.
+- Training: `EPOCHS=12`, `BATCH_SIZE=64`, `EarlyStopping(monitor="val_loss", patience=3, restore_best_weights=True)`, `verbose=2`. Takes about 95–120 s on the CPU. **The results are deterministic**: a re-run reproduced identical numbers.
+- **Actual training results:** all 12 epochs ran, and the best epoch was **9** (val_loss 1.36e-08, val_accuracy 1.0000). The training accuracy at epoch 9 was 0.9999. Val accuracy reached 1.0000 at epoch 2. Epoch 11 had a one-off spike in training loss (0.0575). EarlyStopping triggered at epoch 12 and restored epoch 9's weights. This is the expected effect of the near-duplicate (17 core comments) data.
+- Saved artifacts in `models/` (ignored by Git):
+  - `toxic_lstm_model.keras` (about 609 KB)
+  - `tokenizer.json` (`tokenizer.to_json()`; load with `tf_keras.preprocessing.text.tokenizer_from_json`)
+  - `label_classes.json` (the class list in encoder order)
+  - `preprocessing_config.json` (keys: `max_len`, `padding`, `truncating`, `vocab_size`, `max_words`, `oov_token`, `num_classes`, `text_cleaning`)
+  - JSON was chosen over pickle. Reloading was verified to give identical predictions and sequences.
 
 ## Generated outputs
 
@@ -91,8 +99,9 @@ _Last updated: 2026-10-10 (Step 5 completed)_
 - `outputs/reports/core_comment_summary.csv`: the 17 core comments with label and record count
 - `outputs/plots/sequence_length_distribution.png`: histogram of training sequence lengths with a MAX_LEN line
 - `outputs/reports/model_summary.txt`: Keras model summary
+- `outputs/reports/training_history.csv`: per-epoch loss, accuracy, val_loss and val_accuracy (use it for the Step 7 curves)
 
-## Notebook variables available after Task 4 (model building)
+## Notebook variables available after Task 4
 
 - `df`: full cleaned DataFrame, with added columns `clean_text` and `core_comment`
 - `model_df`: `Comment_ID`, `clean_text`, `Toxicity_Label`, shape (30000, 3)
@@ -103,4 +112,6 @@ _Last updated: 2026-10-10 (Step 5 completed)_
 - `y_train` (24000,) and `y_test` (6000,): integer labels
 - `label_encoder`, `CLASS_NAMES`, `NUM_CLASSES` (5)
 - `tokenizer`, `VOCAB_SIZE` (212), `MAX_WORDS`, `OOV_TOKEN`, `MAX_LEN` (50), `PADDING`, `TRUNCATING`
-- `keras`, `layers`, `model` (compiled, untrained), `EMBEDDING_DIM`, `LSTM_UNITS`, `DENSE_UNITS`, `DROPOUT_RATE`, `LEARNING_RATE`
+- `X_tr`, `X_val`, `y_tr`, `y_val`, `idx_tr`, `idx_val`, `EPOCHS`, `BATCH_SIZE`, `early_stopping`, `history`, `history_df`, `best_epoch`
+- `MODELS_DIR`, `MODEL_PATH`, `TOKENIZER_PATH`, `LABELS_PATH`, `CONFIG_PATH`, `loaded_model`, `loaded_tokenizer`, `loaded_classes`, `loaded_config`, `json`
+- `keras`, `layers`, `model` (trained; best weights restored), `EMBEDDING_DIM`, `LSTM_UNITS`, `DENSE_UNITS`, `DROPOUT_RATE`, `LEARNING_RATE`
