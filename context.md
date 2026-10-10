@@ -3,7 +3,7 @@
 Running record of the project's state, decisions, and findings. Updated at the end of every step.
 Read this first when resuming work.
 
-_Last updated: 2026-10-10 (Step 3 completed)_
+_Last updated: 2026-10-10 (Step 4 completed)_
 
 ## Project
 
@@ -24,10 +24,10 @@ _Last updated: 2026-10-10 (Step 3 completed)_
 | Step | Title | Status |
 |---|---|---|
 | 1 | Repository inspection and project setup | ✅ Done (commit `2257cfc`) |
-| 2 | Dataset loading and initial exploration | ✅ Done |
-| 3 | Text cleaning and target analysis | ✅ Done (awaiting commit) |
-| 4 | Data splitting and NLP tokenization | ⏳ Next |
-| 5 | LSTM model development | Pending |
+| 2 | Dataset loading and initial exploration | ✅ Done (commit `ba1ac74`) |
+| 3 | Text cleaning and target analysis | ✅ Done (commit `abbad01`) |
+| 4 | Data splitting and NLP tokenization | ✅ Done (awaiting commit) |
+| 5 | LSTM model development | ⏳ Next |
 | 6 | Model training and validation | Pending |
 | 7 | Model evaluation and visualization | Pending |
 | 8 | Prediction on new comments (`src/predict.py`) | Pending |
@@ -47,7 +47,7 @@ _Last updated: 2026-10-10 (Step 3 completed)_
 
 | Path | Purpose |
 |---|---|
-| `notebooks/toxic_comment_classification.ipynb` | Main notebook (Task 1 and Task 2 done) |
+| `notebooks/toxic_comment_classification.ipynb` | Main notebook (Tasks 1–3 done; the notebook's "Task 3" = roadmap Step 4) |
 | `src/preprocessing.py` | `clean_text()`, shared by the notebook and the future `src/predict.py` |
 | `tests/test_preprocessing.py` | unittest tests for `clean_text()` |
 | `data/toxic_comments_dataset.csv` | Dataset (ignored by Git) |
@@ -76,17 +76,27 @@ _Last updated: 2026-10-10 (Step 3 completed)_
 - Target = `Toxicity_Label` (multi-class, Softmax). The binary columns are not used as targets.
 - Cleaning: lowercase, decode HTML entities and remove tags, remove URLs and e-mails, drop apostrophes (`don't` → `dont`), replace non-letters (digits, punctuation, emojis) with a space, collapse whitespace. Stop words are kept, and the template wording is not stripped.
 - Duplicates: exact duplicates with consistent labels are removed (0 found); conflicting duplicates are reported to `outputs/reports/conflicting_label_duplicates.csv` and kept for review (0 found). Near-duplicates (shared core comments) are kept.
-- Planned encoding (Step 4): `LabelEncoder` (alphabetical) → integer labels → `sparse_categorical_crossentropy`, with an output of `Dense(5, softmax)`. Encode after the split and save the encoder for prediction.
-- Split plan: 80/20, stratified on `Toxicity_Label`, with a fixed `random_state`. Fit the Tokenizer on training text only.
+- Split: 80/20, `stratify=Toxicity_Label`, `random_state=42`, giving 24,000 train and 6,000 test. The class percentages match within 0.02 points.
+- Label encoding: `LabelEncoder` fitted on the training labels. Mapping: Clean=0, Identity_Attack=1, Severe_Toxic=2, Threat=3, Toxic=4. Integer labels are used with `sparse_categorical_crossentropy` and an output of `Dense(5, softmax)`.
+- Tokenizer: `tf_keras` `Tokenizer(num_words=10000, oov_token="<OOV>")`, fitted on training text only. The real vocabulary is just **211 tokens** (incl. `<OOV>`), so `VOCAB_SIZE = 212` (incl. padding index 0). The test set has 0.00% OOV tokens (templated data).
+- Sequences: training lengths run from 30 to 46 tokens (median 37). `MAX_LEN = 50` (the max rounded up to a multiple of 10), so 100% fit without truncation. Padding `pre`, truncating `post`.
+- Tokenizer, label encoder and settings (MAX_LEN, padding, truncating) are **not saved yet**. Save them in Step 6 with the model, for `predict.py`.
 
 ## Generated outputs
 
 - `outputs/plots/target_distribution.png`: class distribution bar chart
 - `outputs/reports/target_distribution.csv`: counts and percentages per class
 - `outputs/reports/core_comment_summary.csv`: the 17 core comments with label and record count
+- `outputs/plots/sequence_length_distribution.png`: histogram of training sequence lengths with a MAX_LEN line
 
-## Notebook variables available after Task 2
+## Notebook variables available after Task 3
 
 - `df`: full cleaned DataFrame, with added columns `clean_text` and `core_comment`
 - `model_df`: `Comment_ID`, `clean_text`, `Toxicity_Label`, shape (30000, 3)
 - `PROJECT_ROOT`, `DATA_PATH`, `PLOTS_DIR`, `REPORTS_DIR`
+- `RANDOM_STATE` (42); seeds set for `random`, NumPy and TensorFlow
+- `X_train_text`, `X_test_text`, `y_train_labels`, `y_test_labels`: split text and label Series
+- `X_train` (24000, 50) and `X_test` (6000, 50): int32 padded sequences
+- `y_train` (24000,) and `y_test` (6000,): integer labels
+- `label_encoder`, `CLASS_NAMES`, `NUM_CLASSES` (5)
+- `tokenizer`, `VOCAB_SIZE` (212), `MAX_WORDS`, `OOV_TOKEN`, `MAX_LEN` (50), `PADDING`, `TRUNCATING`
