@@ -17,7 +17,7 @@ The project covers the five assignment tasks:
 
 ## Tech Stack
 
-- Python 3.10–3.12
+- Python 3.10–3.13
 - Pandas, NumPy
 - Matplotlib, Seaborn
 - Scikit-learn
@@ -51,10 +51,10 @@ The dataset is excluded from Git by `.gitignore`. The text and target columns wi
 
 ## Setup (Windows)
 
-TensorFlow requires Python 3.10–3.12, so create the virtual environment with Python 3.12:
+TensorFlow requires Python 3.10–3.13, so create the virtual environment with Python 3.13:
 
 ```powershell
-py -3.12 -m venv .venv
+py -3.13 -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt

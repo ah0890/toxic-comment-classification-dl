@@ -1,4 +1,4 @@
-# Use Python 3.10-3.12 (TensorFlow does not support Python 3.13+ yet).
+# Use Python 3.10-3.13 (TensorFlow 2.21 does not support Python 3.14 yet).
 pandas>=2.0
 numpy>=1.26
 matplotlib>=3.8
