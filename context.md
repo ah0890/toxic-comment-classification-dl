@@ -3,7 +3,7 @@
 Running record of the project's state, decisions, and findings. Updated at the end of every step.
 Read this first when resuming work.
 
-_Last updated: 2026-10-10 (Step 4 completed)_
+_Last updated: 2026-10-10 (Step 5 completed)_
 
 ## Project
 
@@ -26,9 +26,9 @@ _Last updated: 2026-10-10 (Step 4 completed)_
 | 1 | Repository inspection and project setup | ✅ Done (commit `2257cfc`) |
 | 2 | Dataset loading and initial exploration | ✅ Done (commit `ba1ac74`) |
 | 3 | Text cleaning and target analysis | ✅ Done (commit `abbad01`) |
-| 4 | Data splitting and NLP tokenization | ✅ Done (awaiting commit) |
-| 5 | LSTM model development | ⏳ Next |
-| 6 | Model training and validation | Pending |
+| 4 | Data splitting and NLP tokenization | ✅ Done (commit `d1ced45`) |
+| 5 | LSTM model development | ✅ Done (awaiting commit) |
+| 6 | Model training and validation | ⏳ Next |
 | 7 | Model evaluation and visualization | Pending |
 | 8 | Prediction on new comments (`src/predict.py`) | Pending |
 | 9 | Documentation and final verification | Pending |
@@ -47,7 +47,7 @@ _Last updated: 2026-10-10 (Step 4 completed)_
 
 | Path | Purpose |
 |---|---|
-| `notebooks/toxic_comment_classification.ipynb` | Main notebook (Tasks 1–3 done; the notebook's "Task 3" = roadmap Step 4) |
+| `notebooks/toxic_comment_classification.ipynb` | Main notebook (Tasks 1–3 done, Task 4 model-building part done). Notebook Task 3 = roadmap Step 4; Task 4 = Steps 5+6 |
 | `src/preprocessing.py` | `clean_text()`, shared by the notebook and the future `src/predict.py` |
 | `tests/test_preprocessing.py` | unittest tests for `clean_text()` |
 | `data/toxic_comments_dataset.csv` | Dataset (ignored by Git) |
@@ -80,6 +80,8 @@ _Last updated: 2026-10-10 (Step 4 completed)_
 - Label encoding: `LabelEncoder` fitted on the training labels. Mapping: Clean=0, Identity_Attack=1, Severe_Toxic=2, Threat=3, Toxic=4. Integer labels are used with `sparse_categorical_crossentropy` and an output of `Dense(5, softmax)`.
 - Tokenizer: `tf_keras` `Tokenizer(num_words=10000, oov_token="<OOV>")`, fitted on training text only. The real vocabulary is just **211 tokens** (incl. `<OOV>`), so `VOCAB_SIZE = 212` (incl. padding index 0). The test set has 0.00% OOV tokens (templated data).
 - Sequences: training lengths run from 30 to 46 tokens (median 37). `MAX_LEN = 50` (the max rounded up to a multiple of 10), so 100% fit without truncation. Padding `pre`, truncating `post`.
+- Model (Step 5): Keras 3 (`tensorflow.keras`) `Sequential` named `toxic_comment_lstm`: Input(50) → Embedding(212, 64) → LSTM(64) → Dropout(0.3) → Dense(32, relu) → Dropout(0.3) → Dense(5, softmax). **48,837 params**, which match the formulas. Compiled with Adam(lr=0.001), `sparse_categorical_crossentropy` and `accuracy`. No `mask_zero`, since pre-padding keeps the real words last. Seeded with `keras.utils.set_random_seed(42)`.
+- Training runs on the CPU (TensorFlow has no GPU support on native Windows).
 - Tokenizer, label encoder and settings (MAX_LEN, padding, truncating) are **not saved yet**. Save them in Step 6 with the model, for `predict.py`.
 
 ## Generated outputs
@@ -88,8 +90,9 @@ _Last updated: 2026-10-10 (Step 4 completed)_
 - `outputs/reports/target_distribution.csv`: counts and percentages per class
 - `outputs/reports/core_comment_summary.csv`: the 17 core comments with label and record count
 - `outputs/plots/sequence_length_distribution.png`: histogram of training sequence lengths with a MAX_LEN line
+- `outputs/reports/model_summary.txt`: Keras model summary
 
-## Notebook variables available after Task 3
+## Notebook variables available after Task 4 (model building)
 
 - `df`: full cleaned DataFrame, with added columns `clean_text` and `core_comment`
 - `model_df`: `Comment_ID`, `clean_text`, `Toxicity_Label`, shape (30000, 3)
@@ -100,3 +103,4 @@ _Last updated: 2026-10-10 (Step 4 completed)_
 - `y_train` (24000,) and `y_test` (6000,): integer labels
 - `label_encoder`, `CLASS_NAMES`, `NUM_CLASSES` (5)
 - `tokenizer`, `VOCAB_SIZE` (212), `MAX_WORDS`, `OOV_TOKEN`, `MAX_LEN` (50), `PADDING`, `TRUNCATING`
+- `keras`, `layers`, `model` (compiled, untrained), `EMBEDDING_DIM`, `LSTM_UNITS`, `DENSE_UNITS`, `DROPOUT_RATE`, `LEARNING_RATE`
