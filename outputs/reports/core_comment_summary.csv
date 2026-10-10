@@ -1,0 +1,18 @@
+Toxicity_Label,core_comment,records
+Clean,This article provides useful information and clear examples.,4685
+Clean,Thank you for sharing this perspective with the community.,4681
+Clean,I respectfully disagree but I understand your point.,4659
+Clean,I appreciate your explanation and the discussion was helpful.,4554
+Identity_Attack,This comment attacks someone based on identity and should be moderated.,493
+Identity_Attack,The message targets a group unfairly and violates community rules.,488
+Identity_Attack,This reply includes discriminatory language and needs review.,487
+Severe_Toxic,This message contains severe abusive language and should be removed.,620
+Severe_Toxic,The comment is extremely hostile and violates community standards.,593
+Severe_Toxic,This reply includes intense personal abuse and harmful wording.,588
+Threat,This reply contains a threat-like statement and is unsafe.,492
+Threat,This message includes threatening language and should be reviewed.,490
+Threat,The comment suggests harm and requires immediate moderation.,477
+Toxic,The tone of this message is toxic and inappropriate.,1721
+Toxic,That response is aggressive and not helpful.,1703
+Toxic,Your message is unnecessarily hostile and offensive.,1646
+Toxic,This comment is rude and disrespectful.,1623

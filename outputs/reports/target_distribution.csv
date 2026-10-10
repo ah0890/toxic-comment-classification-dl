@@ -1,0 +1,6 @@
+Toxicity_Label,count,percent
+Clean,18579,61.93
+Toxic,6693,22.31
+Severe_Toxic,1801,6.0
+Identity_Attack,1468,4.89
+Threat,1459,4.86
