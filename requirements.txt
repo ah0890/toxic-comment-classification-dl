@@ -1,0 +1,11 @@
+# Use Python 3.10-3.12 (TensorFlow does not support Python 3.13+ yet).
+pandas>=2.0
+numpy>=1.26
+matplotlib>=3.8
+seaborn>=0.13
+scikit-learn>=1.4
+tensorflow>=2.16
+# tf-keras provides the classic Keras Tokenizer, which Keras 3 removed.
+tf-keras>=2.16
+jupyter>=1.0
+ipykernel>=6.29
